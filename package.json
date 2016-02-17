@@ -1,6 +1,6 @@
 {
   "name": "opserver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A developer-friendly MongoDB oplog event aggregator.",
   "author": "Sam Hagman <samuel.hagman@gmail.com>",
   "main": "index.js",
