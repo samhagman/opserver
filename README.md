@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/opserver.svg)](https://badge.fury.io/js/opserver)
+
 # Opserver
 > A developer-friendly MongoDB oplog event aggregator
 
@@ -101,7 +103,7 @@ within that database.
 `'update:DATABASE_NAME.COLLECTION.PATH.TO.FIELD'`
 
 These are more interesting and let you listen for updates to specific fields or subdocuments within a collection.  Using
-update events combined with [`Opserver#onMatched`]() you are able to construct powerful triggers on changes to your data
+update events combined with [`Opserver#onMatched`](https://github.com/samhagman/opserver#opserveronmatchedstring-eventstring-object-valuestomatch-function-listener--function) you are able to construct powerful triggers on changes to your data
 fairly easily.
 
 Here are the event types taken straight from the code's JSDoc comments:
