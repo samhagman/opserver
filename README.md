@@ -1,4 +1,5 @@
 [![npm version](https://badge.fury.io/js/opserver.svg)](https://badge.fury.io/js/opserver)
+[![bitHound Overall Score](https://www.bithound.io/github/samhagman/opserver/badges/score.svg)](https://www.bithound.io/github/samhagman/opserver)
 
 # Opserver
 > A developer-friendly MongoDB oplog event aggregator
