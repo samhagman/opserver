@@ -39,7 +39,11 @@ export default function buildOpserver({
     mongoReadOnlyPass,
     mongoAdminConnectionOptions = {},
     mongoReadOnlyConnectionOptions = {},
-    excludes = {},
+    excludes = {
+        insertPaths: [],
+        updatePaths: [],
+        deletePaths: []
+    },
     debugMode = false,
     loggerFunctions = {
         info() {
