@@ -1,0 +1,9 @@
+src/
+
+.idea/
+
+.jscsrc
+
+.jshintrc
+
+.bithoundrc
