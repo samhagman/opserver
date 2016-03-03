@@ -19,8 +19,12 @@ const Promise = require('bluebird');
 /**
  * Build the opserver
  * @param {string} mongoURI - The mongo connection string
- * @param {object} mongoAdminOptions - The options (including user and password) to authenticate to the admin database
- * @param {object} mongoReadOnlyOptions - The connection options to authenticate a readOnly user for other databases
+ * @param {string} mongoAdminUser - The user for authenticating your admin user
+ * @param {string} mongoAdminPass - The password for authenticating your admin user
+ * @param {string} mongoReadOnlyUser - The user for authenticating to the databases we want to read from
+ * @param {string} mongoReadOnlyPass- The password for authenticating to the databases we want to read from
+ * @param {object} mongoAdminConnectionOptions - The options to authenticate to the admin database
+ * @param {object} mongoReadOnlyConnectionOptions - The connection options to connect to the databases we plan to only read
  * @param {{insertPaths: [], deletePaths: [], updatePaths: []}} excludes - Paths to exclude from the three event types
  * @param {boolean} debugMode - Whether or not to enable debug mode (currently only turns on logging)
  * @param {{info: function, warn: function, debug: function, error: function}} [loggerFunctions] - Custom user logger
@@ -29,8 +33,12 @@ const Promise = require('bluebird');
  */
 export default function buildOpserver({
     mongoURI,
-    mongoAdminOptions = {},
-    mongoReadOnlyOptions = {},
+    mongoAdminUser,
+    mongoAdminPass,
+    mongoReadOnlyUser,
+    mongoReadOnlyPass,
+    mongoAdminConnectionOptions = {},
+    mongoReadOnlyConnectionOptions = {},
     excludes = {},
     debugMode = false,
     loggerFunctions = {
@@ -48,7 +56,7 @@ export default function buildOpserver({
         }
     }
 } = {}, cb) {
-
+    
     return new Promise((resolve, reject) => {
 
         // Setup the Logger
@@ -58,7 +66,7 @@ export default function buildOpserver({
          * Setup the options to pass to the connection to the Admin Database
          * @type {object}
          */
-        const mongoDbAdminOptions = Object.assign({}, mongoAdminOptions);
+        const mongoDbAdminOptions = Object.assign({}, mongoAdminConnectionOptions);
 
         // Use the bluebird library for promises
         mongoDbAdminOptions.promiseLibrary = Promise;
@@ -69,7 +77,7 @@ export default function buildOpserver({
 
                 const adminDb = db.admin();
 
-                adminDb.authenticate(mongoDbAdminOptions.user, mongoDbAdminOptions.pass)
+                adminDb.authenticate(mongoAdminUser, mongoAdminPass)
                     .then(result => {
                         if (!result) throw new Error('Unable to authenticate with the given Admin username and password.');
 
@@ -82,8 +90,23 @@ export default function buildOpserver({
                                     const uri = `${mongoURI.slice(0, mongoURI.lastIndexOf('/'))}/${database.name}`;
                                     logger.debug(uri);
 
-                                    // .reflect() => PromiseInspections http://bluebirdjs.com/docs/api/promiseinspection.html
-                                    return Promise.all([ database.name, mClient.connect(uri, mongoReadOnlyOptions).reflect() ]);
+                                    let dbConn;
+
+                                    const connectionPromise = new Promise((resolve, reject) => {
+                                        mClient.connect(uri, mongoReadOnlyConnectionOptions)
+                                            .then(db => {
+                                                dbConn = db;
+                                                return db.authenticate(mongoReadOnlyUser, mongoReadOnlyPass);
+                                            })
+                                            .then(result => {
+                                                if (!result) reject(new Error('Error authenticating as readOnly user.'));
+                                                resolve(dbConn);
+                                            })
+                                            .catch(err => reject(err))
+                                        ;
+                                    }).reflect(); // .reflect() => PromiseInspections http://bluebirdjs.com/docs/api/promiseinspection.html
+
+                                    return Promise.all([ database.name, connectionPromise ]);
                                 });
 
                                 return Promise.all(dbConnectPromises);
@@ -106,8 +129,8 @@ export default function buildOpserver({
                                         connectionsMap.set(dbName, dbConn);
                                     }
                                     else if (debugMode) {
-                                        logger.warn('Connection to database failed:');
-                                        logger.warn(tuple.reason());
+                                        logger.warn(`Connection to database ${dbName} failed:`);
+                                        logger.warn(dbConnPromiseInspection.reason());
                                         connectionsMap.set(dbName, null);
                                     }
                                 });
@@ -126,9 +149,8 @@ export default function buildOpserver({
                             });
                     })
                 ;
-            });
-
-
+            })
+            .catch(err => reject(err));
     }).asCallback(cb);
 }
 
