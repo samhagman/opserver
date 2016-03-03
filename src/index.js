@@ -56,7 +56,7 @@ export default function buildOpserver({
         }
     }
 } = {}, cb) {
-    
+
     return new Promise((resolve, reject) => {
 
         // Setup the Logger
@@ -68,8 +68,16 @@ export default function buildOpserver({
          */
         const mongoDbAdminOptions = Object.assign({}, mongoAdminConnectionOptions);
 
+        /**
+         * Setup the options to pass to the connection to all the readOnly Databases
+         * @type {object}
+         */
+        const mongoDbReadOnlyOptions = Object.assign({}, mongoReadOnlyConnectionOptions);
+
         // Use the bluebird library for promises
         mongoDbAdminOptions.promiseLibrary = Promise;
+        mongoDbReadOnlyOptions.promiseLibrary = Promise;
+
 
         return mClient
             .connect(mongoURI, mongoDbAdminOptions)
@@ -93,7 +101,7 @@ export default function buildOpserver({
                                     let dbConn;
 
                                     const connectionPromise = new Promise((resolve, reject) => {
-                                        mClient.connect(uri, mongoReadOnlyConnectionOptions)
+                                        mClient.connect(uri, mongoDbReadOnlyOptions)
                                             .then(db => {
                                                 dbConn = db;
                                                 return db.authenticate(mongoReadOnlyUser, mongoReadOnlyPass);
