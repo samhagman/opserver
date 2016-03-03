@@ -69,16 +69,22 @@ export default function buildOpserver({
 
                 const adminDb = db.admin();
 
-                // List all databases and then attempt to connect to them using the readOnly credentials
-                return adminDb
-                    .listDatabases()
+                adminDb.authenticate(mongoDbAdminOptions.user, mongoDbAdminOptions.pass)
+                    .then(result => {
+                        if (!result) throw new Error('Unable to authenticate with the given Admin username and password.')
+
+                        // List all databases and then attempt to connect to them using the readOnly credentials
+                        return adminDb.listDatabases()
+                    })
                     .tap(dbs => logger.debug(dbs))
-                    .then(({databases}) => {
+                    .then(({ databases }) => {
                         const dbConnectPromises = databases.map(database => {
+                            
                             const uri = `${mongoURI.slice(0, mongoURI.lastIndexOf('/'))}/${database.name}`;
                             logger.debug(uri);
+
                             // .reflect() => PromiseInspections http://bluebirdjs.com/docs/api/promiseinspection.html
-                            return Promise.all([database.name, mClient.connect(uri, mongoReadOnlyOptions).reflect()]);
+                            return Promise.all([ database.name, mClient.connect(uri, mongoReadOnlyOptions).reflect() ]);
                         });
 
                         return Promise.all(dbConnectPromises);
@@ -118,7 +124,8 @@ export default function buildOpserver({
 
                         });
 
-                    });
+                    })
+                ;
             });
 
 

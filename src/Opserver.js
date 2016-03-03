@@ -157,7 +157,7 @@ class Opserver extends EventEmitter3 {
      * @memberof module:opserver#Opserver
      * @param {string} eventString - Opserver event
      * @param {object} valuesToMatch - Object with keys and values to match
-     * @param {callback} cb
+     * @param {callback} [cb]
      * @returns {Promise.<object>} - Resolves with the event data
      */
     onceMatched(eventString, valuesToMatch, cb) {
