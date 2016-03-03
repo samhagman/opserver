@@ -47,7 +47,7 @@ export default function buildOpserver({
             console.log(...arguments);
         }
     }
-    } = {}, cb) {
+} = {}, cb) {
 
     return new Promise((resolve, reject) => {
 
@@ -71,59 +71,59 @@ export default function buildOpserver({
 
                 adminDb.authenticate(mongoDbAdminOptions.user, mongoDbAdminOptions.pass)
                     .then(result => {
-                        if (!result) throw new Error('Unable to authenticate with the given Admin username and password.')
+                        if (!result) throw new Error('Unable to authenticate with the given Admin username and password.');
 
                         // List all databases and then attempt to connect to them using the readOnly credentials
                         return adminDb.listDatabases()
-                    })
-                    .tap(dbs => logger.debug(dbs))
-                    .then(({ databases }) => {
-                        const dbConnectPromises = databases.map(database => {
-                            
-                            const uri = `${mongoURI.slice(0, mongoURI.lastIndexOf('/'))}/${database.name}`;
-                            logger.debug(uri);
+                            .tap(dbs => logger.debug(dbs))
+                            .then(({ databases }) => {
+                                const dbConnectPromises = databases.map(database => {
 
-                            // .reflect() => PromiseInspections http://bluebirdjs.com/docs/api/promiseinspection.html
-                            return Promise.all([ database.name, mClient.connect(uri, mongoReadOnlyOptions).reflect() ]);
-                        });
+                                    const uri = `${mongoURI.slice(0, mongoURI.lastIndexOf('/'))}/${database.name}`;
+                                    logger.debug(uri);
 
-                        return Promise.all(dbConnectPromises);
-                    })
-                    .then((dbConnectionTuples) => {
+                                    // .reflect() => PromiseInspections http://bluebirdjs.com/docs/api/promiseinspection.html
+                                    return Promise.all([ database.name, mClient.connect(uri, mongoReadOnlyOptions).reflect() ]);
+                                });
 
-                        /**
-                         * Holds the MongoDB connections
-                         * @type {Map}
-                         */
-                        const connectionsMap = new Map();
+                                return Promise.all(dbConnectPromises);
+                            })
+                            .then((dbConnectionTuples) => {
 
-                        // If the connection to the database was successful, add it to the connections map
-                        dbConnectionTuples.forEach(tuple => {
-                            const dbName = tuple[ 0 ];
-                            const dbConnPromiseInspection = tuple[ 1 ];
+                                /**
+                                 * Holds the MongoDB connections
+                                 * @type {Map}
+                                 */
+                                const connectionsMap = new Map();
 
-                            if (dbConnPromiseInspection.isFulfilled()) {
-                                const dbConn = dbConnPromiseInspection.value();
-                                connectionsMap.set(dbName, dbConn);
-                            }
-                            else if (debugMode) {
-                                logger.warn('Connection to database failed:');
-                                logger.warn(tuple.reason());
-                                connectionsMap.set(dbName, null);
-                            }
-                        });
+                                // If the connection to the database was successful, add it to the connections map
+                                dbConnectionTuples.forEach(tuple => {
+                                    const dbName = tuple[ 0 ];
+                                    const dbConnPromiseInspection = tuple[ 1 ];
 
-                        // Start to tail the MongoDB oplog
-                        const oplog = MongoOplog(db.db('local'), {}).tail(() => {
+                                    if (dbConnPromiseInspection.isFulfilled()) {
+                                        const dbConn = dbConnPromiseInspection.value();
+                                        connectionsMap.set(dbName, dbConn);
+                                    }
+                                    else if (debugMode) {
+                                        logger.warn('Connection to database failed:');
+                                        logger.warn(tuple.reason());
+                                        connectionsMap.set(dbName, null);
+                                    }
+                                });
 
-                            // Instantiate the Opserver class
-                            const Opserver = require('./Opserver');
-                            const opserver = new Opserver(oplog, connectionsMap, excludes, logger);
+                                // Start to tail the MongoDB oplog
+                                const oplog = MongoOplog(db.db('local'), {}).tail(() => {
 
-                            return resolve(opserver);
+                                    // Instantiate the Opserver class
+                                    const Opserver = require('./Opserver');
+                                    const opserver = new Opserver(oplog, connectionsMap, excludes, logger);
 
-                        });
+                                    return resolve(opserver);
 
+                                });
+
+                            });
                     })
                 ;
             });
@@ -139,7 +139,7 @@ export default function buildOpserver({
  */
 class DebugLogger {
 
-    constructor({info, debug, warn, error}, debugMode) {
+    constructor({ info, debug, warn, error }, debugMode) {
 
         this.info = debugMode && info ? info : (() => {});
         this.debug = debugMode && debug ? debug : (() => {});
