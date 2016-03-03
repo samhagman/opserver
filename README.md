@@ -26,8 +26,10 @@ var opserverFactory = require(‘opserver’);
 
 var opserverOptions = {
     mongoAdminURI: ‘mongodb://127.0.0.1:27017/admin?replicaSet=test’,
-    mongoAdminOptions: { user: ‘admin’, pass: ‘adminPass’ },
-    mongoReadOnlyOptions: { user: ‘readUser’, pass: ‘readPass’ }
+    mongoAdminUser: 'admin',
+    mongoAdminPass: 'adminPass',
+    mongoReadOnlyUser: 'readUser',
+    mongoReadOnlyPass: 'readPass'
 };
 
 // Get the opserver via callback or Promise (omit the callback argument)
@@ -74,7 +76,7 @@ Initializing an Opserver requires three key arguments:
 
 - A mongo connection string for the admin database of your MongoDB installation
 
-- The options needed to authenticate and connect to that database (either in object or connection string format)
+- The options needed to connect to that database (either in object or connection string format)
 
 - The options needed to authenticate as a read only user to the databases you want to listen for events on.  This would
 just be the same user/pass setup on all your databases that you want Opserver to be able to access
@@ -87,8 +89,42 @@ Opserver will initialize in the following way:
 4. Begin to tail the Mongo oplog
 5. Start emitting events
 
-> Note: The admin user must have the 'clusterAdmin' role on the admin database
+> Note: The admin user must have the 'clusterAdmin' and 'readAnyDatabase' roles in the admin database
 
+The full options object used for initialization are listed below with a description and their default values:
+
+```node
+
+let opserverOptions = {
+    mongoURI:                       undefined // URI to database
+    mongoAdminUser:                 undefined // Admin user
+    mongoAdminPass:                 undefined // Admin user password
+    mongoAdminConnectionOptions:    {},       // Options object passed to `mongo.connect()`
+    mongoReadOnlyUser:              undefined // readOnly user
+    mongoReadOnlyPass:              undefined // readOnly pasword
+    mongoReadOnlyConnectionOptions: {},       // Options object passed to `mongo.connect()`
+    debugMode:                      false,    // Whether or not to print debugging messages
+    loggerFunctions: {                        // Optionally pass in your own logger functions
+        info() {                                // for info, warn, debug, and error messages when in debug mode
+            console.log(...arguments);
+        },
+        warn() {
+            console.log(...arguments);
+        },
+        debug() {
+            console.log(...arguments);
+        },
+        error() {
+            console.log(...arguments);
+        }
+    },
+    excludes:                       {           // These are paths to exclude from their respective events. 
+        updatePaths: [],                        // Pass in a string to any of these arrays and if that string is found
+        insertPaths: [],                        // anywhere inside one of the event strings, that event will be ignored
+        deletePaths: []                         // ex. 'update:mydb.users.firstName' will ignore any updates of users
+    }                                           // firstName fields in the mydb database.  'firstName' would ignore any
+};                                              // update event that had 'firstName' anywhere in its event string.
+```
 
 ## Event Types
 
