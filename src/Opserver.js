@@ -446,7 +446,7 @@ class Opserver extends EventEmitter3 {
                  * .reduce  Reduce each of those objects into an array of changed object path
                  * strings (see computeObjectPaths)
                  *
-                 * .map For each changed property (ex. workflow.flows.relatedJobs) create an
+                 * .map For each changed property (ex. workflow.flows.ancestors) create an
                  * event object to be emitted with that path
                  */
                 const events = Object.keys(data.operation)

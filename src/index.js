@@ -22,7 +22,7 @@ const Promise = require('bluebird');
  * @param {string} mongoAdminUser - The user for authenticating your admin user
  * @param {string} mongoAdminPass - The password for authenticating your admin user
  * @param {string} mongoReadOnlyUser - The user for authenticating to the databases we want to read from
- * @param {string} mongoReadOnlyPass- The password for authenticating to the databases we want to read from
+ * @param {string} mongoReadOnlyPass - The password for authenticating to the databases we want to read from
  * @param {object} mongoAdminConnectionOptions - The options to authenticate to the admin database
  * @param {object} mongoReadOnlyConnectionOptions - The connection options to connect to the databases we plan to only read
  * @param {{insertPaths: [], deletePaths: [], updatePaths: []}} excludes - Paths to exclude from the three event types
